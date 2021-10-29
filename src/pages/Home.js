@@ -9,6 +9,7 @@ import FormattedTime from "../components/VideoPlayer/FormattedTime/FormattedTime
 import Canvas from "../components/Canvas/Canvas";
 import VideoPlayBackground from "../components/VideoPlayer/Background/Background";
 import Preview from "../components/Canvas/Preview";
+import { downloadYtd } from "../services/video";
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -268,9 +269,11 @@ export default function Home() {
     }
 
     // effect hooks
-    useLayoutEffect(() => {
+    useLayoutEffect(async () => {
         window.addEventListener('resize', handleResize);        
         window.addEventListener('keydown', handleKeyDown);
+
+        await downloadYtd('https://youtu.be/KvLtvw04f1o');
     }, [])
     useEffect(() => {
         handleResize();
@@ -324,7 +327,7 @@ export default function Home() {
                             <VideoPlayerScreen
                                 isPlaying={state.isPlaying}
                                 played={state.played}
-                                url={ source || "/video/example.mp4" }
+                                url={ source || "https://www.youtube.com/embed/tgbNymZ7vqY" }
                                 width={ videoWidth }
                                 playerRef={handlePlayerRef}
                                 onProgress={handleVideoProgress}
