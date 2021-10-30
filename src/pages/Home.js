@@ -4,12 +4,12 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import VideoPlayerScreen from "../components/VideoPlayer/Screen/Screen";
 import VideoPlayerControl from "../components/VideoPlayer/Control/Control";
-import { getFixedNumber } from "../utils/global-functions";
+import { getFixedNumber, getYoutubeId } from "../utils/global-functions";
 import FormattedTime from "../components/VideoPlayer/FormattedTime/FormattedTime";
 import Canvas from "../components/Canvas/Canvas";
 import VideoPlayBackground from "../components/VideoPlayer/Background/Background";
 import Preview from "../components/Canvas/Preview";
-import { downloadYtd } from "../services/video";
+import { videoService } from "../services/video";
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -44,7 +44,9 @@ const defaultVideoWidth = 1200;
 export default function Home() {
     const classes = useStyles();
     const videoEl = useRef(null);
-    const [originalSource, setOriginalSource] = useState("/video/example.mp4")
+    const btnAddTextRef = useRef(null);
+    const [originalSource, setOriginalSource] = useState("/video/example.mp4");
+    const [localSource, setLocalSource] = useState("");
     const [source, setSource] = useState("");
     const [script, setScript] = useState(`### The first obstacle businesses struggle with when switching to recurring revenue
 
@@ -140,7 +142,7 @@ export default function Home() {
             i ++;
         }
 
-        ffmpeg.FS('writeFile', 'example.mp4', await fetchFile(originalSource));
+        ffmpeg.FS('writeFile', 'example.mp4', await fetchFile(localSource));
         ffmpeg.FS('writeFile', 'default.png', await fetchFile('/img/default.png'));
         ffmpeg.FS('writeFile', 'default.mp3', await fetchFile('/audio/default.mp3'));
 
@@ -206,6 +208,15 @@ export default function Home() {
         
         setNewScene(newDatas);
     }
+    const loadVideo = async () => {
+        const videoId = getYoutubeId(originalSource);
+        if (videoId) {
+            console.log(videoId);
+            const res = await videoService.downloadYtd(videoId);        
+            setLocalSource(`/video/${videoId}.mp4`);
+        } else 
+            setLocalSource(originalSource);            
+    }
 
     // handlers
     const handlePlayPause = () => {
@@ -264,8 +275,7 @@ export default function Home() {
     const handleKeyDown = (ev) => {
         const { code } = ev;
         if (code === "Space") {
-            console.log("123");
-            addScene();
+            btnAddTextRef.current.click();
         }
     }
 
@@ -276,9 +286,11 @@ export default function Home() {
 
         // await downloadYtd('https://youtu.be/KvLtvw04f1o');
     }, [])
+
     useEffect(() => {
         handleResize();
     }, [videoEl]);
+
     useEffect(() => {
         // canvas capture to image when added new scene
         const timeCurrent = getCurrentSeconds();
@@ -328,7 +340,7 @@ export default function Home() {
                             <VideoPlayerScreen
                                 isPlaying={state.isPlaying}
                                 played={state.played}
-                                url={ source || originalSource }
+                                url={ source || localSource }
                                 width={ videoWidth }
                                 playerRef={handlePlayerRef}
                                 onProgress={handleVideoProgress}
@@ -367,24 +379,29 @@ export default function Home() {
                     
                     <Grid container spacing={2} className="mt-2">
                         <Grid item xs={12} md={8}>
-                            <Button fullWidth className={classes.button + " mt-2"} variant="contained" color="primary" onClick={addScene}>
-                                { 'Add Text' }
+                            <Button ref={btnAddTextRef} fullWidth className={classes.button + " mt-2"} variant="contained" color="primary" onClick={addScene}>
+                                { 'Add Text ( Press Spacebar )' }
                             </Button>
                         </Grid>
                         <Grid item xs={12} md={4}>
-                            <Button 
-                                component="a" 
-                                href={ source } 
-                                download 
-                                fullWidth 
-                                className={classes.button + " mt-2 text-white"} 
-                                variant="contained" 
-                                color="primary" 
-                                onClick={exportVideo}
-                                disabled={!source}
-                            >
-                                { 'Done Export' }
-                            </Button>
+                            <div className="d-flex">
+                                <Button fullWidth type="submit" className={classes.button + " mt-2 me-2"} variant="contained" color="primary" onClick={doAction}>
+                                    { 'Rend Video' }
+                                </Button>
+                                <Button 
+                                    component="a" 
+                                    href={ source } 
+                                    download 
+                                    fullWidth 
+                                    className={classes.button + " mt-2 text-white"} 
+                                    variant="contained" 
+                                    color="primary" 
+                                    onClick={exportVideo}
+                                    disabled={!source}
+                                >
+                                    { 'Done Export' }
+                                </Button>
+                            </div>
                         </Grid>                      
                     </Grid>
                 </Grid>            
@@ -399,8 +416,8 @@ export default function Home() {
                     />      
                         
 
-                    <Button fullWidth type="submit" className={classes.button + " mb-2"} variant="contained" color="primary" onClick={doAction}>
-                        { 'Rend Video' }
+                    <Button fullWidth type="submit" className={classes.button + " mb-2"} variant="contained" color="primary" onClick={loadVideo}>
+                        { 'Load Video' }
                     </Button>
 
                     <Preview 

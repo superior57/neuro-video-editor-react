@@ -29,14 +29,16 @@ app.get('/api/v1/test', (req, res, next) => {
 })
 
 app.get('/api/v1/download-ytd', async (req, res, next) => {
-    const uri = req.query.src;
+    const id = req.query.id;
+
     console.log('downloading ...');
     try {
-        await ytdl(uri).pipe(fs.createWriteStream('public/video/video.mp4'));
-        console.log("done");
+        ytdl(id).pipe(fs.createWriteStream(`public/video/${id}.mp4`));
     } catch (error) {
-        console.log(error);        
+        
     }
+    console.log("done");
+    
     return res.send({
         data: "ok"
     });
