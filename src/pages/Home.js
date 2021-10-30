@@ -44,6 +44,7 @@ const defaultVideoWidth = 1200;
 export default function Home() {
     const classes = useStyles();
     const videoEl = useRef(null);
+    const [originalSource, setOriginalSource] = useState("/video/example.mp4")
     const [source, setSource] = useState("");
     const [script, setScript] = useState(`### The first obstacle businesses struggle with when switching to recurring revenue
 
@@ -139,7 +140,7 @@ export default function Home() {
             i ++;
         }
 
-        ffmpeg.FS('writeFile', 'example.mp4', await fetchFile(videoUrl));
+        ffmpeg.FS('writeFile', 'example.mp4', await fetchFile(originalSource));
         ffmpeg.FS('writeFile', 'default.png', await fetchFile('/img/default.png'));
         ffmpeg.FS('writeFile', 'default.mp3', await fetchFile('/audio/default.mp3'));
 
@@ -269,11 +270,11 @@ export default function Home() {
     }
 
     // effect hooks
-    useLayoutEffect(async () => {
+    useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);        
         window.addEventListener('keydown', handleKeyDown);
 
-        await downloadYtd('https://youtu.be/KvLtvw04f1o');
+        // await downloadYtd('https://youtu.be/KvLtvw04f1o');
     }, [])
     useEffect(() => {
         handleResize();
@@ -327,7 +328,7 @@ export default function Home() {
                             <VideoPlayerScreen
                                 isPlaying={state.isPlaying}
                                 played={state.played}
-                                url={ source || "https://www.youtube.com/embed/tgbNymZ7vqY" }
+                                url={ source || originalSource }
                                 width={ videoWidth }
                                 playerRef={handlePlayerRef}
                                 onProgress={handleVideoProgress}
@@ -387,7 +388,17 @@ export default function Home() {
                         </Grid>                      
                     </Grid>
                 </Grid>            
-                <Grid item xs={12} md={4} className="flex-column d-flex">             
+                <Grid item xs={12} md={4} className="flex-column d-flex">       
+                    <TextField
+                        className="mb-2"
+                        variant="standard"
+                        label="Video source" 
+                        fullWidth
+                        value={originalSource}
+                        onChange={ev => setOriginalSource(ev.target.value)}
+                    />      
+                        
+
                     <Button fullWidth type="submit" className={classes.button + " mb-2"} variant="contained" color="primary" onClick={doAction}>
                         { 'Rend Video' }
                     </Button>

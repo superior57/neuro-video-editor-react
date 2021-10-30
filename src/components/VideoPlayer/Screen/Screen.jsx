@@ -48,7 +48,7 @@ const Screen = ({
 				position: "absolute",
 				overflow: 'hidden',
 				width: width * 0.415,
-				left: getRealValue(21),
+				left: getRealValue( 24 ),
 				top: getRealValue(35)
 			}}>
 				<ReactPlayer
@@ -67,7 +67,7 @@ const Screen = ({
 					loop={ isLoop }
 					playbackRate={ playbackRate }
 					width={ width }
-					height={ width * (9 / 16) - getRealValue(120) }
+					height={ width * (9 / 16) - getRealValue(115) }
 					style={{
 						marginLeft: width * 0.3 * -1
 					}}

@@ -31,11 +31,13 @@ export default function Canvas({
     const classes = useStyles();
     const titleOptions = {
         fill: "#c79745",
-        fontSize: defaultSize.title * zoomRate
+        fontSize: defaultSize.title * zoomRate,
+        align: "center"
     }
     const textOptions = {
         fill: "white",
         fontSize: defaultSize.text * zoomRate,
+        align: "left"
     }
     const getRealOptions = (type) => {
         return type === "title" ? titleOptions : textOptions;
@@ -94,6 +96,7 @@ export default function Canvas({
                             text={value}
                             fill={getRealOptions(type).fill}
                             fontSize={getRealOptions(type).fontSize}
+                            align={getRealOptions(type).align}
                         />
                     ))
                 }                
