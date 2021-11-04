@@ -7,7 +7,7 @@ body {
 }
 
 body * {
-  border-radius: 0 !important;
+  border-radius: 0;
 }
 
 .App-logo {

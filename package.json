@@ -8,6 +8,7 @@
     "@emotion/styled": "^11.3.0",
     "@ffmpeg/core": "^0.9.0",
     "@ffmpeg/ffmpeg": "^0.9.8",
+    "@mui/icons-material": "^5.0.5",
     "@mui/material": "^5.0.6",
     "@mui/styles": "^5.0.2",
     "@testing-library/jest-dom": "^5.14.1",
@@ -28,6 +29,7 @@
     "react-scripts": "4.0.3",
     "reactstrap": "^9.0.0",
     "sass": "^1.43.4",
+    "text-encoding-utf-8": "^1.0.2",
     "web-vitals": "^1.1.2",
     "ytdl-core": "^4.9.1"
   },

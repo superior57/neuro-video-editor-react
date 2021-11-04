@@ -1,5 +1,5 @@
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { Alert, Grid, TextField, Typography, Button, LinearProgress, Box, duration, Paper, Fade, Grow } from "@mui/material";
+import { Alert, Grid, TextField, Typography, Button, LinearProgress, Box, duration, Paper, Fade, Grow, IconButton } from "@mui/material";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import VideoPlayerScreen from "../components/VideoPlayer/Screen/Screen";
@@ -10,6 +10,9 @@ import Canvas from "../components/Canvas/Canvas";
 import VideoPlayBackground from "../components/VideoPlayer/Background/Background";
 import Preview from "../components/Canvas/Preview";
 import { videoService } from "../services/video";
+import { Close } from "@mui/icons-material";
+import { dark } from "@mui/material/styles/createPalette";
+
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -35,6 +38,21 @@ const useStyles = makeStyles(theme => ({
         color: '#000',
         paddingBottom: 0,
         paddingTop: 0
+    },
+    customFile: {
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        border: 'solid 1px gray',
+        borderRadius: '30px !important',
+        transition: "300ms",
+        "&:hover": {
+            boxShadow: theme.shadows[3],
+            cursor: "pointer"
+        },
+        color: 'gray !important',
+        textTransform: "unset",
+        padding: '1px 4px'
     }
 }))
 
@@ -45,22 +63,28 @@ export default function Home() {
     const classes = useStyles();
     const videoEl = useRef(null);
     const btnAddTextRef = useRef(null);
-    const [originalSource, setOriginalSource] = useState("/video/example.mp4");
+    const [originalSource, setOriginalSource] = useState(null);
     const [localSource, setLocalSource] = useState("");
     const [source, setSource] = useState("");
-    const [script, setScript] = useState(`### The first obstacle businesses struggle with when switching to recurring revenue
+    const [arrScript, setArrScript] = useState([]);
+    const [current, setCurrent] = useState(0);
+    const [currentTitle, setCurrentTitle] = useState(0);
+    const [script, setScript] = useState(`### Big achievement today!
 
-    - What you deliver must provide outsized value to your members
-    - It must not just be intellectual entertainment
-    - It must provoke your members to take action
-    - This way, theyâ€™ll want to keep receiving the benefits
+    - We have completed one of the hardest things we've done together
+    - We climbed the equivalent of Mount Everest...
+    - In less than 36 hours!
+    - It was part of the 29029 Everesting Challenge
     
-    ### The biggest tragedy (and opportunity) in the business worldâ€¦
+    ### The 29029 Everesting Challenge: How it works
     
-    - The mistake most people make is they do a great job at selling the subscriptionâ€¦
-    - But their quality of delivery is mediocre or out of alignment with what subscribers expected
-    - So the retention is very low.
-    - This is the biggest tragedy in the world: to be successful on the marketing sideâ€¦ and not to deliver what is expected
+    - The company rents out a ski mountain
+    - You climb that mountain!
+    - We were at Stratton Mountain in Vermont
+    - You have to climb it 17 times in 36 hours
+    - It is the equivalent of climbing the Everest
+    - (and you do it in the rain, in the mud, lots of fun!)
+    - ... so our rejuvenation maybe comes more from the 5 days of spa
     `);
     const [message, setMessage] = useState("");
     const [progress, setProgress] = useState(false);
@@ -112,7 +136,7 @@ export default function Home() {
             timeTo: state.duration,
             data: [...newScene]
         });
-
+        setCurrent(current + 1);
         setCanvasDatas([ ...newCanvasDatas ]);        
     }
     const doAction = async () => {
@@ -199,23 +223,25 @@ export default function Home() {
             strMix.split('\n').forEach((strRow, index) => {
                 let type = "text";
                 if (script.split('###').length > 1 && index === 0) type = "title";
+                if (strRow.trim() == "") return;
                 newDatas.push({
                     type,
                     value: strRow.trim()
                 })                  
             })
-        })
-        
-        setNewScene(newDatas);
+        });
+
+        setArrScript(newDatas);
+        setNewScene([newDatas[0]]);
     }
     const loadVideo = async () => {
-        const videoId = getYoutubeId(originalSource);
-        if (videoId) {
-            console.log(videoId);
-            const res = await videoService.downloadYtd(videoId);        
-            setLocalSource(`/video/${videoId}.mp4`);
-        } else 
-            setLocalSource(originalSource);            
+        // const videoId = getYoutubeId(originalSource);
+        // if (videoId) {
+        //     console.log(videoId);
+        //     const res = await videoService.downloadYtd(videoId);        
+        //     setLocalSource(`/video/${videoId}.mp4`);
+        // } else 
+            setLocalSource(URL.createObjectURL(originalSource));            
     }
 
     // handlers
@@ -276,6 +302,7 @@ export default function Home() {
         const { code } = ev;
         if (code === "Space") {
             btnAddTextRef.current.click();
+            ev.preventDefault();
         }
     }
 
@@ -285,6 +312,7 @@ export default function Home() {
         window.addEventListener('keydown', handleKeyDown);
 
         // await downloadYtd('https://youtu.be/KvLtvw04f1o');
+        upText();
     }, [])
 
     useEffect(() => {
@@ -310,6 +338,21 @@ export default function Home() {
             setCanvasDatas([ ...newCanvasDatas ]);
         }
     }, [canvasDatas]);
+
+    useEffect(() => {
+        if (current != 0) {
+            if (arrScript[current]?.type === "title") {
+                setCurrentTitle(current);
+                setNewScene([
+                    ...arrScript.filter((script, i) => i <= current && i >= current )
+                ]);   
+            } else {
+                setNewScene([
+                    ...arrScript.filter((script, i) => i <= current && i >= currentTitle )
+                ]);   
+            }                      
+        }
+    }, [current])
 
     return (
         <div className="w-100 px-3">
@@ -379,13 +422,13 @@ export default function Home() {
                     
                     <Grid container spacing={2} className="mt-2">
                         <Grid item xs={12} md={8}>
-                            <Button ref={btnAddTextRef} fullWidth className={classes.button + " mt-2"} variant="contained" color="primary" onClick={addScene}>
-                                { 'Add Text ( Press Spacebar )' }
+                            <Button ref={btnAddTextRef} fullWidth className={classes.button + " mt-2"} variant="contained" color="primary" disabled={!localSource} onClick={addScene}>
+                                { 'Click here or press the [SPACE] bar to sync your script' }
                             </Button>
                         </Grid>
                         <Grid item xs={12} md={4}>
                             <div className="d-flex">
-                                <Button fullWidth type="submit" className={classes.button + " mt-2 me-2"} variant="contained" color="primary" onClick={doAction}>
+                                <Button fullWidth type="submit" className={classes.button + " mt-2 me-2"} variant="contained" color="primary" disabled={!localSource} onClick={doAction}>
                                     { 'Rend Video' }
                                 </Button>
                                 <Button 
@@ -399,40 +442,62 @@ export default function Home() {
                                     onClick={exportVideo}
                                     disabled={!source}
                                 >
-                                    { 'Done Export' }
+                                    { 'DONE / EXPORT' }
                                 </Button>
                             </div>
                         </Grid>                      
                     </Grid>
                 </Grid>            
                 <Grid item xs={12} md={4} className="flex-column d-flex">       
-                    <TextField
-                        className="mb-2"
-                        variant="standard"
-                        label="Video source" 
-                        fullWidth
-                        value={originalSource}
-                        onChange={ev => setOriginalSource(ev.target.value)}
-                    />      
-                        
+                    <div className="d-flex mb-2">                        
+                        {
+                            !!originalSource ? <Fade in>
+                                <Button 
+                                    className={classes.customFile}
+                                    component="div"
+                                    size="sm"
+                                >
+                                    <div className="px-3">{ "File: " + originalSource?.name }</div>
+                                    <IconButton color="default" size="sm" onClick={() => {
+                                        setOriginalSource(null);
+                                        setLocalSource(null);
+                                    }} >
+                                        <Close />
+                                    </IconButton>
+                                </Button>
+                            </Fade> : <Fade in>
+                                    <Button variant="contained" component="label" color="primary" className={classes.button}>
+                                        Upload video
+                                        <input 
+                                            hidden 
+                                            type="file" 
+                                            accept="video/*" 
+                                            onChange={ev => {
+                                                setOriginalSource(ev.target.files[0]);
+                                                setLocalSource(URL.createObjectURL(ev.target.files[0]));
+                                            }}
+                                        />                          
+                                    </Button>
+                                </Fade>
+                        }
+                    </div>
 
-                    <Button fullWidth type="submit" className={classes.button + " mb-2"} variant="contained" color="primary" onClick={loadVideo}>
-                        { 'Load Video' }
-                    </Button>
-
+            
+                    <Button fullWidth type="submit" className={classes.button + " mt-2 text-black"} >
+                        { 'Up next' }
+                    </Button>    
                     <Preview 
                         className={classes.textPreview}
                         data={newScene}
                     />
             
-                    <Button fullWidth type="submit" className={classes.button + " mt-2"} variant="contained" color="primary" onClick={upText}>
-                        { 'Up Text' }
-                    </Button>
+                    <Button fullWidth type="submit" className={classes.button + " mt-2 text-black"} >
+                        { 'Full Script' }
+                    </Button>                  
                     
                     <TextField
                         className="mt-2"
                         variant="standard"
-                        label="Full Script" 
                         fullWidth
                         value={script}
                         onChange={ev => setScript(ev.target.value)}

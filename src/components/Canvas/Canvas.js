@@ -1,6 +1,6 @@
 import { makeStyles } from "@mui/styles";
-import { useRef } from "react";
-import { Layer, Rect, Stage, Text } from "react-konva";
+import React, { useRef } from "react";
+import { Layer, Rect, Stage, Text, Shape } from "react-konva";
 import { Html } from "react-konva-utils";
 
 const useStyles = makeStyles(theme => ({
@@ -20,6 +20,29 @@ const defaultSize = {
     marginBottom: 130
 }
 
+const RowHeadShape = ({
+    color,
+    x = 0,
+    y = 0,
+    zoomRate
+}) => {
+    const getRealValue = (value) => {
+        return value * zoomRate
+    }
+
+    return <Shape 
+        fill={color}
+        sceneFunc={(context, shape) => {
+            context.beginPath();
+            context.moveTo(x, y);
+            context.lineTo(x + getRealValue(10), y + getRealValue(7.5));
+            context.lineTo(x + 0, y + getRealValue(15));
+            context.closePath();
+            context.fillStrokeShape(shape);
+        }}
+    />
+}
+
 export default function Canvas({
     canvasWidth = 300,
     canvasHeight = 300,
@@ -30,7 +53,7 @@ export default function Canvas({
 }) {
     const classes = useStyles();
     const titleOptions = {
-        fill: "#c79745",
+        fill: "#FFAF04",
         fontSize: defaultSize.title * zoomRate,
         align: "center"
     }
@@ -85,20 +108,35 @@ export default function Canvas({
                 top: getRealValue(defaultSize.marginTop)
             }}
         >
-            <Layer >
+            <Layer >           
                 {
-                    data.map(({ type, value }, index) => (
-                        <Text 
-                            width={width}
-                            key={'canvas-text-' + index}
-                            x={0}
-                            y={getMarginTop(index)}
-                            text={value}
-                            fill={getRealOptions(type).fill}
-                            fontSize={getRealOptions(type).fontSize}
-                            align={getRealOptions(type).align}
-                        />
-                    ))
+                    data.map(({ type, value }, index) => {
+                        var newValue = value;
+                        var y = getMarginTop(index);
+                        if (value[0] === "-")
+                            newValue = newValue.substring(1);
+                        return (
+                            <React.Fragment key={'canvas-text-' + index}>
+                                {
+                                    value[0] === "-" && <RowHeadShape 
+                                        color={titleOptions.fill}
+                                        x={0}
+                                        y={y + getRealValue(3)}
+                                        zoomRate={zoomRate}
+                                    />
+                                }
+                                <Text 
+                                    width={width}
+                                    x={value[0] === "-" ? 20 : 0}
+                                    y={y}
+                                    text={newValue}
+                                    fill={getRealOptions(type).fill}
+                                    fontSize={getRealOptions(type).fontSize}
+                                    align={getRealOptions(type).align}
+                                />
+                            </React.Fragment>
+                        )
+                    })
                 }                
             </Layer>
         </Stage>
