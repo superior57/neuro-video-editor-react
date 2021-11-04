@@ -1,26 +1,25 @@
 const express = require('express');
 const path = require('path');
 const app = express();
-const port = 8080;
+const port = 8000;
 
 const ytdl = require('ytdl-core');
 const fs = require('fs');
 
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
 
 var allowCrossDomain = function(req, res, next) {
     res.header('Access-Control-Allow-Origin', '*');
     res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type');
-
+    res.header('Cross-Origin-Embedder-Policy', 'require-corp');
+    res.header('Cross-Origin-Opener-Policy', 'same-origin');
+    
     next();
 }
 
 app.use(allowCrossDomain);
-
-app.get('/', function(req, res) {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+app.use(express.static(path.join(__dirname, 'build')));
 
 app.get('/api/v1/test', (req, res, next) => {
     return res.send({
