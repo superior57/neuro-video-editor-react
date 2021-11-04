@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import ReactPlayer from 'react-player/lazy';
+import './screen.scss';
 
 const Screen = ({
 	className,
@@ -16,8 +17,11 @@ const Screen = ({
 	onEnded,
 	playerRef,
 	zoomRate,
-	previewMode
+	previewMode,
+	videoSourceRef
 }) => {
+
+	const height = width * (9 / 16);
 
 	if (!previewMode) {
 		return <ReactPlayer
@@ -36,7 +40,7 @@ const Screen = ({
 			loop={ isLoop }
 			playbackRate={ playbackRate }
 			width={ width }
-			height={ width * (9 / 16) }
+			height={ height }
 		/>
 	} else {
 		const getRealValue = (value) => {
@@ -44,10 +48,11 @@ const Screen = ({
 		}
 	
 		return (
-			<div style={{
+			<div ref={videoSourceRef} style={{
 				position: "absolute",
 				overflow: 'hidden',
 				width: width * 0.415,
+				height: height - (getRealValue(35) + getRealValue(80)),
 				left: getRealValue( 24 ),
 				top: getRealValue(35)
 			}}>
@@ -60,17 +65,18 @@ const Screen = ({
 					onProgress={ onProgress }
 					onDuration={ onDuration }
 					onEnded={ onEnded }
-					className={ `player-screen d-flex ${className ? ` ${className}` : ''}` }
+					className={ `player-screen d-flex justify-content-center ${className ? ` ${className}` : ''}` }
 					progressInterval={ progressInterval }
 					controls={ false }
 					muted
 					loop={ isLoop }
 					playbackRate={ playbackRate }
-					width={ width }
-					height={ width * (9 / 16) - getRealValue(115) }
-					style={{
-						marginLeft: width * 0.3 * -1
-					}}
+					width={ 'unset' }
+					height={ '100%' }
+					// controls
+					// style={{
+					// 	marginLeft: width * 0.3 * -1
+					// }}
 				/>
 			</div>
 		);

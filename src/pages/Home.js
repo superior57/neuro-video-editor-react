@@ -96,6 +96,7 @@ export default function Home() {
        
     var player = null;
     var canvas = null;
+    var videoSourceEl = null;
 
     const [state, setState] = useState({
         isPlaying: false, 
@@ -139,10 +140,15 @@ export default function Home() {
         setCurrent(current + 1);
         setCanvasDatas([ ...newCanvasDatas ]);        
     }
-    const doAction = async () => {
-        const [ width, height ] = [
-            800, 896
-        ]
+    const doAction = async () => {        
+        const   outWidth = 1280,
+                outHeight = 720;
+
+        const   textareaWidth = outWidth * 0.542 - 27,
+                textareaHeight = outHeight - ( 50 + 130 );
+        const   videoareaWidth = outWidth * 0.415,
+                videoareaHeight = outHeight - ( 35 + 80 );
+
 
         // load ffmpeg
         setProgress(true);
@@ -159,11 +165,13 @@ export default function Home() {
         let i = 0;
         var textCanvasImages = [];
         for await (const data of canvasDatas) {
-            const textImgName = `text-${i}.png`;
-            ffmpeg.FS('writeFile', textImgName, await fetchFile(data.image));
-            textCanvasImages.push('-i');
-            textCanvasImages.push(textImgName);
-            i ++;
+            if (data.image) {
+                const textImgName = `text-${i}.png`;
+                ffmpeg.FS('writeFile', textImgName, await fetchFile(data.image));
+                textCanvasImages.push('-i');
+                textCanvasImages.push(textImgName);
+                i ++;
+            }
         }
 
         ffmpeg.FS('writeFile', 'example.mp4', await fetchFile(localSource));
@@ -176,22 +184,23 @@ export default function Home() {
             ...textCanvasImages,
             '-filter_complex',
             `
-                [1] scale=h=${height},crop=w=${width} [video];            
+                [0:v] scale=${outWidth}:${outHeight} [videobg]; 
+                [1] scale=h=${videoareaHeight},crop=w=${videoareaWidth} [video];            
 
                 ${
-                    canvasDatas.map((_, index) => (
-                        `[${index + 2}] scale=960:${height}:force_original_aspect_ratio=decrease [text${index}];`
-                    )).join(' ')
+                    textCanvasImages.length > 0 ? canvasDatas.map((_, index) => (
+                        `[${index + 2}] scale=${textareaWidth}:${textareaHeight}:force_original_aspect_ratio=decrease [text${index}];`
+                    )).join(' ') : ''
                 }
-                [0:v][video] overlay=41:58 [bg];                
+                [videobg][video] overlay=27:35 ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
                 ${
-                    canvasDatas.map(({ timeFrom, timeTo }, index) => (`
+                    textCanvasImages.length > 0 ? canvasDatas.map(({ timeFrom, timeTo }, index) => (`
                             [${index === 0 ? 'bg' : `video${index - 1}`}]
-                            [text${index}] overlay=870:100:enable='between(t, ${timeFrom}, ${timeTo})'                             
+                            [text${index}] overlay=${outWidth - (textareaWidth + 27)}:50:enable='between(t, ${timeFrom}, ${timeTo})'                             
                             ${index != canvasDatas.length - 1 ? `[video${index}];` : '' }
-                    `)).join(' ')
+                    `)).join(' ') : ''
                 }
-            `,            
+            `,        
             'new.mp4'
         ]);
 
@@ -305,6 +314,9 @@ export default function Home() {
             ev.preventDefault();
         }
     }
+    const handleVideoSourceRef = (newVideoSourceEl) => {
+        videoSourceEl = newVideoSourceEl;
+    }
 
     // effect hooks
     useLayoutEffect(() => {
@@ -391,6 +403,7 @@ export default function Home() {
                                 onEnded={handleVideoEnded}        
                                 zoomRate={zoomRate}    
                                 previewMode={!source}
+                                videoSourceRef={handleVideoSourceRef}
                             />
                             {
                                 !source && <>

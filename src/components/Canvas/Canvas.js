@@ -71,7 +71,7 @@ export default function Canvas({
     }
     var totalHeight = 0;
 
-    const width = canvasWidth *0.542 - getRealValue(defaultSize.marginRight);
+    const width = canvasWidth * 0.542 - getRealValue(defaultSize.marginRight);
 
     const getMarginTop = (index) => {
         const prevData = data[index - 1];
