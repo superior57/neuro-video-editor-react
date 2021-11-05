@@ -69,23 +69,7 @@ export default function Home() {
     const [arrScript, setArrScript] = useState([]);
     const [current, setCurrent] = useState(0);
     const [currentTitle, setCurrentTitle] = useState(0);
-    const [script, setScript] = useState(`### Big achievement today!
-
-    - We have completed one of the hardest things we've done together
-    - We climbed the equivalent of Mount Everest...
-    - In less than 36 hours!
-    - It was part of the 29029 Everesting Challenge
-    
-    ### The 29029 Everesting Challenge: How it works
-    
-    - The company rents out a ski mountain
-    - You climb that mountain!
-    - We were at Stratton Mountain in Vermont
-    - You have to climb it 17 times in 36 hours
-    - It is the equivalent of climbing the Everest
-    - (and you do it in the rain, in the mud, lots of fun!)
-    - ... so our rejuvenation maybe comes more from the 5 days of spa
-    `);
+    const [script, setScript] = useState("");
     const [message, setMessage] = useState("");
     const [progress, setProgress] = useState(false);
     const [videoWidth, setVideoWidth] = useState(defaultVideoWidth);
@@ -239,6 +223,10 @@ export default function Home() {
                 })                  
             })
         });
+        
+        if (newDatas.length === 0) {
+            newDatas.push(script);
+        }
 
         setArrScript(newDatas);
         setNewScene([newDatas[0]]);
@@ -325,7 +313,11 @@ export default function Home() {
 
         // await downloadYtd('https://youtu.be/KvLtvw04f1o');
         upText();
-    }, [])
+    }, []);
+
+    useEffect(() => {
+        upText();
+    }, [script])
 
     useEffect(() => {
         handleResize();
