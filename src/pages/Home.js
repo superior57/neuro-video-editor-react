@@ -125,13 +125,18 @@ export default function Home() {
         setCanvasDatas([ ...newCanvasDatas ]);        
     }
     const doAction = async () => {        
-        const   outWidth = 1280,
-                outHeight = 720;
+        const   outHeight = 720,
+                outWidth = outHeight / ( 9 / 16 );
 
-        const   textareaWidth = outWidth * 0.542 - 27,
-                textareaHeight = outHeight - ( 50 + 130 );
-        const   videoareaWidth = outWidth * 0.415,
-                videoareaHeight = outHeight - ( 35 + 80 );
+        const getRealScale = (value) => {
+            const zoomRate = outWidth / videoWidth;
+            return value * zoomRate
+        }
+
+        const   textareaWidth = outWidth * 0.542 - getRealScale(27),
+                textareaHeight = outHeight - ( getRealScale(50) + getRealScale(130) ),
+                videoareaWidth = outWidth * 0.415,
+                videoareaHeight = outHeight - ( getRealScale(32) + getRealScale(80) );
 
 
         // load ffmpeg
@@ -140,9 +145,6 @@ export default function Home() {
 
         ffmpeg = createFFmpeg({ log: true });
         await ffmpeg.load();
-
-        var videoUrl = "https://youtu.be/i408lXhDviM";
-        videoUrl = "/video/example.mp4";
 
         setMessage('Transcoding');
 
@@ -169,18 +171,18 @@ export default function Home() {
             '-filter_complex',
             `
                 [0:v] scale=${outWidth}:${outHeight} [videobg]; 
-                [1] scale=h=${videoareaHeight},crop=w=${videoareaWidth} [video];            
+                [1] scale=h=${videoareaHeight}:force_original_aspect_ratio=decrease,crop=w=${videoareaWidth} [video];            
 
                 ${
                     textCanvasImages.length > 0 ? canvasDatas.map((_, index) => (
                         `[${index + 2}] scale=${textareaWidth}:${textareaHeight}:force_original_aspect_ratio=decrease [text${index}];`
                     )).join(' ') : ''
                 }
-                [videobg][video] overlay=27:35 ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
+                [videobg][video] overlay=${getRealScale(27)}:${getRealScale(35)} ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
                 ${
                     textCanvasImages.length > 0 ? canvasDatas.map(({ timeFrom, timeTo }, index) => (`
                             [${index === 0 ? 'bg' : `video${index - 1}`}]
-                            [text${index}] overlay=${outWidth - (textareaWidth + 27)}:50:enable='between(t, ${timeFrom}, ${timeTo})'                             
+                            [text${index}] overlay=${outWidth - (textareaWidth + getRealScale(27))}:${getRealScale(50)}:enable='between(t, ${timeFrom}, ${timeTo})'                             
                             ${index != canvasDatas.length - 1 ? `[video${index}];` : '' }
                     `)).join(' ') : ''
                 }
@@ -189,7 +191,7 @@ export default function Home() {
         ]);
 
         setProgress(false);
-        setMessage('Complete transcoding');
+        setMessage('Completed transcoding');
         closeMessage();
         showVideo('new.mp4');
     }
