@@ -8,7 +8,7 @@ const format = (seconds) => {
 	const hh = pad(date.getUTCHours(), 2);
 	const mm = pad(date.getUTCMinutes(), 2);
 	const ss = pad(date.getUTCSeconds(), 2);
-	const ms = pad(date.getUTCMilliseconds(), 3);
+	// const ms = pad(date.getUTCMilliseconds(), 3);
 
 	return `${hh}:${mm}:${ss}`;
 };

@@ -30,8 +30,7 @@
     "reactstrap": "^9.0.0",
     "sass": "^1.43.4",
     "text-encoding-utf-8": "^1.0.2",
-    "web-vitals": "^1.1.2",
-    "ytdl-core": "^4.9.1"
+    "web-vitals": "^1.1.2"
   },
   "scripts": {
     "start": "craco start",

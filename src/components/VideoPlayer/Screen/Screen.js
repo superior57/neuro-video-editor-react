@@ -36,7 +36,6 @@ const Screen = ({
 			className={ `player-screen d-flex ${className ? ` ${className}` : ''}` }
 			progressInterval={ progressInterval }
 			controls={ false }
-			muted
 			loop={ isLoop }
 			playbackRate={ playbackRate }
 			width={ width }
@@ -68,7 +67,6 @@ const Screen = ({
 					className={ `player-screen d-flex justify-content-center ${className ? ` ${className}` : ''}` }
 					progressInterval={ progressInterval }
 					controls={ false }
-					muted
 					loop={ isLoop }
 					playbackRate={ playbackRate }
 					width={ 'unset' }

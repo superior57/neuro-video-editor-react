@@ -1,18 +1,15 @@
 import { createFFmpeg, fetchFile } from "@ffmpeg/ffmpeg";
-import { Alert, Grid, TextField, Typography, Button, LinearProgress, Box, duration, Paper, Fade, Grow, IconButton } from "@mui/material";
+import { Alert, Grid, TextField, Typography, Button, LinearProgress, Box, Fade, IconButton } from "@mui/material";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { makeStyles } from "@mui/styles";
 import VideoPlayerScreen from "../components/VideoPlayer/Screen/Screen";
 import VideoPlayerControl from "../components/VideoPlayer/Control/Control";
-import { getFixedNumber, getYoutubeId } from "../utils/global-functions";
+import { getFixedNumber } from "../utils/global-functions";
 import FormattedTime from "../components/VideoPlayer/FormattedTime/FormattedTime";
 import Canvas from "../components/Canvas/Canvas";
 import VideoPlayBackground from "../components/VideoPlayer/Background/Background";
 import Preview from "../components/Canvas/Preview";
-import { videoService } from "../services/video";
 import { Close } from "@mui/icons-material";
-import { dark } from "@mui/material/styles/createPalette";
-
 
 const useStyles = makeStyles(theme => ({
     button: {
@@ -76,10 +73,10 @@ export default function Home() {
     const [zoomRate, setZoomRate] = useState(1);
     const [newScene, setNewScene] = useState([]);
     const [canvasDatas, setCanvasDatas] = useState([]);
-
        
     var player = null;
     var canvas = null;
+    /* eslint no-unused-vars: 0 */
     var videoSourceEl = null;
 
     const [state, setState] = useState({
@@ -105,6 +102,7 @@ export default function Home() {
     }
     const addScene = () => {
         const timeCurrent = getCurrentSeconds();
+        if (timeCurrent === state.duration) return;
         var newCanvasDatas = [];
         canvasDatas.forEach((item) => {
             if ( timeCurrent > item.timeFrom && timeCurrent < item.timeTo ) {
@@ -112,7 +110,7 @@ export default function Home() {
                     ...item,
                     timeTo: timeCurrent
                 })
-            } else if (timeCurrent != item.timeFrom && item.timeFrom < timeCurrent) {
+            } else if (timeCurrent !== item.timeFrom && item.timeFrom < timeCurrent) {
                 newCanvasDatas.push({ ...item })                
             }
         });        
@@ -121,22 +119,33 @@ export default function Home() {
             timeTo: state.duration,
             data: [...newScene]
         });
+        console.log(newCanvasDatas);
         setCurrent(current + 1);
         setCanvasDatas([ ...newCanvasDatas ]);        
     }
-    const doAction = async () => {        
-        const   outHeight = 720,
+    const doAction = async () => {      
+        const defaultHeight = 720;  
+        const   outHeight = defaultHeight,
                 outWidth = outHeight / ( 9 / 16 );
 
         const getRealScale = (value) => {
-            const zoomRate = outWidth / videoWidth;
-            return value * zoomRate
+            const scaleRate = outHeight / defaultHeight;
+            return value * scaleRate
         }
 
+        const { width: canvaWidth, height: canvaHeight } = canvas.attrs;
+        console.log("canvas =>", canvaWidth, canvaHeight);
+
+        const x = (outWidth * 0.542 - getRealScale(27)) / canvaWidth;
+        console.log(x);
+
         const   textareaWidth = outWidth * 0.542 - getRealScale(27),
-                textareaHeight = outHeight - ( getRealScale(50) + getRealScale(130) ),
-                videoareaWidth = outWidth * 0.415,
-                videoareaHeight = outHeight - ( getRealScale(32) + getRealScale(80) );
+                textareaHeight = canvaHeight * (textareaWidth / canvaWidth);
+                
+        const   videoareaWidth = outWidth * 0.415,
+                videoareaHeight = outHeight - ( getRealScale(40) + getRealScale(80) );
+
+        console.log("area =>", textareaWidth, textareaHeight);
 
 
         // load ffmpeg
@@ -147,11 +156,13 @@ export default function Home() {
         await ffmpeg.load();
 
         setMessage('Transcoding');
-
+        console.log(canvasDatas);
         let i = 0;
         var textCanvasImages = [];
+        var availableImages = [];
         for await (const data of canvasDatas) {
             if (data.image) {
+                availableImages.push(data);
                 const textImgName = `text-${i}.png`;
                 ffmpeg.FS('writeFile', textImgName, await fetchFile(data.image));
                 textCanvasImages.push('-i');
@@ -174,16 +185,16 @@ export default function Home() {
                 [1] scale=h=${videoareaHeight}:force_original_aspect_ratio=decrease,crop=w=${videoareaWidth} [video];            
 
                 ${
-                    textCanvasImages.length > 0 ? canvasDatas.map((_, index) => (
-                        `[${index + 2}] scale=${textareaWidth}:${textareaHeight}:force_original_aspect_ratio=decrease [text${index}];`
+                    textCanvasImages.length > 0 ? availableImages.map((_, index) => (
+                        `[${index + 2}] scale=${textareaWidth.toFixed(0)}:${textareaHeight.toFixed(0)} [text${index}];`
                     )).join(' ') : ''
                 }
-                [videobg][video] overlay=${getRealScale(27)}:${getRealScale(35)} ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
+                [videobg][video] overlay=${getRealScale(27)}:${getRealScale(38)} ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
                 ${
-                    textCanvasImages.length > 0 ? canvasDatas.map(({ timeFrom, timeTo }, index) => (`
+                    textCanvasImages.length > 0 ? availableImages.map(({ timeFrom, timeTo }, index) => (`
                             [${index === 0 ? 'bg' : `video${index - 1}`}]
                             [text${index}] overlay=${outWidth - (textareaWidth + getRealScale(27))}:${getRealScale(50)}:enable='between(t, ${timeFrom}, ${timeTo})'                             
-                            ${index != canvasDatas.length - 1 ? `[video${index}];` : '' }
+                            ${index !== canvasDatas.length - 1 ? `[video${index}];` : '' }
                     `)).join(' ') : ''
                 }
             `,        
@@ -212,13 +223,12 @@ export default function Home() {
     }
     const upText = () => {
         const newDatas = [];       
-
         script.split('###').forEach(strMix => {
             if (!strMix) return;
             strMix.split('\n').forEach((strRow, index) => {
                 let type = "text";
                 if (script.split('###').length > 1 && index === 0) type = "title";
-                if (strRow.trim() == "") return;
+                if (strRow.trim() === "") return;
                 newDatas.push({
                     type,
                     value: strRow.trim()
@@ -232,15 +242,6 @@ export default function Home() {
 
         setArrScript(newDatas);
         setNewScene([newDatas[0]]);
-    }
-    const loadVideo = async () => {
-        // const videoId = getYoutubeId(originalSource);
-        // if (videoId) {
-        //     console.log(videoId);
-        //     const res = await videoService.downloadYtd(videoId);        
-        //     setLocalSource(`/video/${videoId}.mp4`);
-        // } else 
-            setLocalSource(URL.createObjectURL(originalSource));            
     }
 
     // handlers
@@ -312,12 +313,10 @@ export default function Home() {
     useLayoutEffect(() => {
         window.addEventListener('resize', handleResize);        
         window.addEventListener('keydown', handleKeyDown);
-
-        // await downloadYtd('https://youtu.be/KvLtvw04f1o');
-        upText();
     }, []);
 
     useEffect(() => {
+        /* eslint react-hooks/exhaustive-deps: 0 */
         upText();
     }, [script])
 
@@ -346,7 +345,7 @@ export default function Home() {
     }, [canvasDatas]);
 
     useEffect(() => {
-        if (current != 0) {
+        if (current !== 0) {
             if (arrScript[current]?.type === "title") {
                 setCurrentTitle(current);
                 setNewScene([
@@ -488,7 +487,6 @@ export default function Home() {
                                 </Fade>
                         }
                     </div>
-
             
                     <Button fullWidth type="submit" className={classes.button + " mt-2 text-black"} >
                         { 'Up next' }
@@ -510,8 +508,8 @@ export default function Home() {
                         onChange={ev => setScript(ev.target.value)}
                         multiline
                         rows={10}
-                    />
-                                         
+                        placeholder="Enter full script here..."
+                    />                                         
                 </Grid>
             </Grid>
         </div>

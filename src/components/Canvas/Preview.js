@@ -14,6 +14,10 @@ export default function Preview({
                     }</React.Fragment>
                 ))
             }
+            {
+                (data.length === 0 || data[0] === '')
+                && <div className="text-black-50">{ "Your next screen displays here..." }</div>
+            }
         </Paper>
     )
 }

@@ -19,7 +19,7 @@ export default function Background({
             height={ width * (9 / 16) }
             className={classes.root}
         >
-            <img src="/img/default.png" width="100%" height="100%" />
+            <img src="/img/default.png" width="100%" height="100%" alt="video background" />
         </div>
     )
 }

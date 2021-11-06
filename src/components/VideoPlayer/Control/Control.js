@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, {} from 'react';
 import PropTypes from 'prop-types';
-import { MdPlayArrow, MdPause, MdReplay, MdSkipPrevious, MdSkipNext, MdFullscreen, MdFullscreenExit, MdMovieFilter, MdMovieCreation } from 'react-icons/md';
-import {
-	Dropdown, DropdownToggle, DropdownMenu, DropdownItem, ButtonGroup, Input
-} from 'reactstrap';
+import { MdPlayArrow, MdPause, MdReplay } from 'react-icons/md';
+import { ButtonGroup } from 'reactstrap';
 import { Button } from "@mui/material";
-import Slider from '../Slider/Slider.jsx';
-import FormattedTime from '../FormattedTime/FormattedTime.jsx';
+import Slider from '../Slider/Slider.js';
+import FormattedTime from '../FormattedTime/FormattedTime.js';
 import './control.scss';
 
 const Control = ({
@@ -28,8 +26,6 @@ const Control = ({
 	onFullScreen,
 	onShowAnnotation
 }) => {
-	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
 	return (
 		<div className={ `player-control${className ? ` ${className}` : ''}` } >
 			<Slider
@@ -52,14 +48,6 @@ const Control = ({
 					</ButtonGroup>
 				</div>
 				<div className='d-flex align-items-center pr-4'>
-					{/* <ButtonGroup>
-						<Button className='player-control__button d-flex align-items-center' onClick={ onPrevSecFrame }>
-							<MdSkipPrevious className='player-control__icon' />
-						</Button>
-						<Button className='player-control__button d-flex align-items-center' onClick={ onNextSecFrame }>
-							<MdSkipNext className='player-control__icon' />
-						</Button>
-					</ButtonGroup> */}
 					<Button className='player-control__button d-flex align-items-center' >
 						<div className='player-control__time'>
 							<FormattedTime seconds={ played * duration } />

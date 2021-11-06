@@ -3,9 +3,6 @@ const path = require('path');
 const app = express();
 const port = 8000;
 
-const ytdl = require('ytdl-core');
-const fs = require('fs');
-
 // app.use(express.static(path.join(__dirname, 'public')));
 
 var allowCrossDomain = function(req, res, next) {
@@ -19,28 +16,10 @@ var allowCrossDomain = function(req, res, next) {
 }
 
 app.use(allowCrossDomain);
-app.use(express.static(path.join(__dirname, 'build')));
+app.get("", (req, res) => {
+    app.use(express.static(path.join(__dirname, 'build')));
 
-app.get('/api/v1/test', (req, res, next) => {
-    return res.send({
-        data: "ok"
-    });
-})
-
-app.get('/api/v1/download-ytd', async (req, res, next) => {
-    const id = req.query.id;
-
-    console.log('downloading ...');
-    try {
-        ytdl(id).pipe(fs.createWriteStream(`public/video/${id}.mp4`));
-    } catch (error) {
-        
-    }
-    console.log("done");
-    
-    return res.send({
-        data: "ok"
-    });
-})
+    return res.sendFile(path.join(__dirname, 'build', 'index.html'))
+});
 
 app.listen(port, () => console.info('app is running on: ' + port));

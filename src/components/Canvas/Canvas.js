@@ -1,15 +1,5 @@
-import { makeStyles } from "@mui/styles";
-import React, { useRef } from "react";
-import { Layer, Rect, Stage, Text, Shape } from "react-konva";
-import { Html } from "react-konva-utils";
-
-const useStyles = makeStyles(theme => ({
-    html: {
-        position: "absolute",
-        top: '50px !important',
-        left: '20px !important'
-    }
-}))
+import React, {} from "react";
+import { Layer, Stage, Text, Shape } from "react-konva";
 
 const defaultSize = {
     title: 34,
@@ -51,7 +41,6 @@ export default function Canvas({
     zoomRate = 1,
     data = []
 }) {
-    const classes = useStyles();
     const titleOptions = {
         fill: "#FFAF04",
         fontSize: defaultSize.title * zoomRate,
@@ -87,7 +76,7 @@ export default function Canvas({
             document.body.append(el)
             prevHeight = el.clientHeight + getRealValue(defaultSize.textLineSpacing);
 
-            if (prevData.type != data[index]?.type) {
+            if (prevData.type !== data[index]?.type) {
                 prevHeight += getRealValue(10);
             }
 
@@ -100,8 +89,8 @@ export default function Canvas({
     return (
         <Stage 
             ref={ canvasRef }
-            width={width}
-            height={ canvasWidth * (9 / 16) - (getRealValue(defaultSize.marginTop) + getRealValue(defaultSize.marginBottom)) }
+            width={width.toFixed(0)}
+            height={ (canvasWidth * (9 / 16) - (getRealValue(defaultSize.marginTop) + getRealValue(defaultSize.marginBottom))).toFixed(0) }
             className={className}
             style={{
                 right: getRealValue(defaultSize.marginRight),
@@ -127,7 +116,7 @@ export default function Canvas({
                                 }
                                 <Text 
                                     width={width}
-                                    x={value[0] === "-" ? 20 : 0}
+                                    x={value[0] === "-" ? getRealValue(20) : 0}
                                     y={y}
                                     text={newValue}
                                     fill={getRealOptions(type).fill}
