@@ -73,6 +73,18 @@ export default function Home() {
     const [zoomRate, setZoomRate] = useState(1);
     const [newScene, setNewScene] = useState([]);
     const [canvasDatas, setCanvasDatas] = useState([]);
+
+    const   defaultHeight = 720;  
+    const   outHeight = defaultHeight,
+            outWidth = outHeight / ( 9 / 16 );
+
+    const getRealVideoOutScale = (value) => {
+        const scaleRate = outHeight / defaultHeight;
+        return value * scaleRate
+    }
+
+    const   textareaWidth = outWidth * 0.542 - getRealVideoOutScale(27),
+            textareaHeight = outHeight - ( getRealVideoOutScale(50) + getRealVideoOutScale(130) )
        
     var player = null;
     var canvas = null;
@@ -119,32 +131,14 @@ export default function Home() {
             timeTo: state.duration,
             data: [...newScene]
         });
-        console.log(newCanvasDatas);
         setCurrent(current + 1);
         setCanvasDatas([ ...newCanvasDatas ]);        
     }
-    const doAction = async () => {      
-        const defaultHeight = 720;  
-        const   outHeight = defaultHeight,
-                outWidth = outHeight / ( 9 / 16 );
-
-        const getRealScale = (value) => {
-            const scaleRate = outHeight / defaultHeight;
-            return value * scaleRate
-        }
-
-        const { width: canvaWidth, height: canvaHeight } = canvas.attrs;
-        console.log("canvas =>", canvaWidth, canvaHeight);
-
-        const x = (outWidth * 0.542 - getRealScale(27)) / canvaWidth;
-        console.log(x);
-
-        const   textareaWidth = outWidth * 0.542 - getRealScale(27),
-                textareaHeight = canvaHeight * (textareaWidth / canvaWidth);
-                
+    const doAction = async () => {  
         const   videoareaWidth = outWidth * 0.415,
-                videoareaHeight = outHeight - ( getRealScale(40) + getRealScale(80) );
+                videoareaHeight = outHeight - ( getRealVideoOutScale(40) + getRealVideoOutScale(80) );
 
+        console.log("canva =>", canvas.attrs);
         console.log("area =>", textareaWidth, textareaHeight);
 
 
@@ -189,11 +183,11 @@ export default function Home() {
                         `[${index + 2}] scale=${textareaWidth.toFixed(0)}:${textareaHeight.toFixed(0)} [text${index}];`
                     )).join(' ') : ''
                 }
-                [videobg][video] overlay=${getRealScale(27)}:${getRealScale(38)} ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
+                [videobg][video] overlay=${getRealVideoOutScale(27)}:${getRealVideoOutScale(38)} ${ textCanvasImages.length > 0 ? '[bg];' : '' }                 
                 ${
                     textCanvasImages.length > 0 ? availableImages.map(({ timeFrom, timeTo }, index) => (`
                             [${index === 0 ? 'bg' : `video${index - 1}`}]
-                            [text${index}] overlay=${outWidth - (textareaWidth + getRealScale(27))}:${getRealScale(50)}:enable='between(t, ${timeFrom}, ${timeTo})'                             
+                            [text${index}] overlay=${outWidth - (textareaWidth + getRealVideoOutScale(27))}:${getRealVideoOutScale(50)}:enable='between(t, ${timeFrom}, ${timeTo})'                             
                             ${index !== canvasDatas.length - 1 ? `[video${index}];` : '' }
                     `)).join(' ') : ''
                 }
@@ -409,6 +403,9 @@ export default function Home() {
                                         canvasRef={ handleCanvasRef }
                                         zoomRate={ zoomRate }
                                         data={getCurrentText(getCurrentSeconds())}
+                                        controlWidth={ textareaWidth }
+                                        controlHeight={ textareaHeight }
+                                        controlZoomRate={ outWidth / defaultVideoWidth }                                        
                                     />
                                 </>
                             }
