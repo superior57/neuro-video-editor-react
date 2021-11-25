@@ -1,4 +1,4 @@
-# Neuro Front-End
+# Neuro Proof of concept
 
 
 ## Available Scripts
